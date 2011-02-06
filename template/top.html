@@ -2,12 +2,18 @@
 <body>
 <form name="form" method="post" action="/" enctype="multipart/form-data">
 <div><input type="file" name="fname"></div>
-<div>Limit access IP (comma separated) <input type="text" name="ipaddrs"></div>
+<div>Allow access from only following IP addresses (comma separated, shell like wildcard match enabled) <input type="text" name="ipaddrs"></div>
+<div>Allow access from only following Google accounts (comma separated, shell like wildcard match enabled) <input type="text" name="accounts"></div>
 <div><input type="submit" name="submit"> </div>
 </form>
 
 {% for entry in my_entries %}
-<div><a href="/{{ entry.key.name }}">{{ entry.fname }}</a></div>
+<div>
+  <a href="/{{ entry.key.name }}">{{ entry.fname }}</a>
+  {% if entry.ipaddrs %}
+  allowed ip addresses: {{ entry.ipaddrs }}
+  {% endif %}
+</div>
 {% endfor %}
 
 <div>You're accessing from {{ remote_addr }}</div>

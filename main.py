@@ -28,6 +28,7 @@ class TopHandler(webapp.RequestHandler):
     def get(self):
         query = models.ApkEntry.all()
         query.filter("owner =", users.get_current_user())
+        query.order("uploaded_date")
         param = {"remote_addr": self.request.remote_addr,
                  "my_entries": query}
         self.render_template("top.html", param)

@@ -21,6 +21,7 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
 
 import os
+import fnmatch
 
 import models
 
@@ -35,6 +36,15 @@ class DownloadHandler(webapp.RequestHandler):
         if not entry:
             self.response.set_status(404)
             return
+        if entry.ipaddrs:
+            ip_allowed = False
+            for allowed_ipaddr_pat in entry.ipaddrs.split(","):
+                if fnmatch.fnmatchcase(self.request.remote_addr, allowed_ipaddr_pat):
+                    ip_allowed = True
+                    break
+            if not ip_allowed:
+                self.response.set_status(404)
+                return
         self.response.headers["Content-Type"] = "application/vnd.android.package-archive"
         self.response.headers["Content-Disposition"] = "attachment; filename=\"%s\"" % entry.fname
         self.response.out.write(entry.data)
