@@ -1,0 +1,15 @@
+<html>
+<body>
+<form name="form" method="post" action="/" enctype="multipart/form-data">
+<div><input type="file" name="fname"></div>
+<div>Limit access IP (comma separated) <input type="text" name="ipaddrs"></div>
+<div><input type="submit" name="submit"> </div>
+</form>
+
+{% for entry in my_entries %}
+<div><a href="/{{ entry.key.name }}">{{ entry.fname }}</a></div>
+{% endfor %}
+
+<div>You're accessing from {{ remote_addr }}</div>
+</body>
+</html>

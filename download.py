@@ -24,34 +24,25 @@ import os
 
 import models
 
-class TopHandler(webapp.RequestHandler):
+class DownloadHandler(webapp.RequestHandler):
     def get(self):
-        query = models.ApkEntry.all()
-        query.filter("owner =", users.get_current_user())
-        param = {"remote_addr": self.request.remote_addr,
-                 "my_entries": query}
-        self.render_template("top.html", param)
-
-    def post(self):
-        apk_entry = models.ApkEntry.insert_new_entry()
-        data = self.request.get("fname")
-        apk_entry.data = db.Blob(data)
-        apk_entry.fname = self.request.POST[u'fname'].filename
-        apk_entry.owner = users.get_current_user()
-        apk_entry.ipaddrs = self.request.get("ipaddrs")
-        apk_entry.put()
-        self.redirect("/")
-
-    def render_template(self, html, variables):
-        path = os.path.join(os.path.dirname(__file__), "template", html)
-        self.response.out.write(template.render(path, variables))
-
+        path = self.request.path
+        if not path or len(path) < 1 or path[0] != "/":
+            self.response.set_status(404)
+            return
+        key_name = path[1:]
+        entry = models.ApkEntry.get_by_key_name(key_name)
+        if not entry:
+            self.response.set_status(404)
+            return
+        self.response.headers["Content-Type"] = "application/vnd.android.package-archive"
+        self.response.headers["Content-Disposition"] = "attachment; filename=\"%s\"" % entry.fname
+        self.response.out.write(entry.data)
 
 def main():
-    application = webapp.WSGIApplication([('/', TopHandler)],
+    application = webapp.WSGIApplication([('.*', DownloadHandler)],
                                          debug=True)
     util.run_wsgi_app(application)
-
 
 if __name__ == '__main__':
     main()
