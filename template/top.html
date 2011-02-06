@@ -5,16 +5,20 @@
 <body>
 <form name="form" method="post" action="/" enctype="multipart/form-data">
 <div><input type="file" name="fname"></div>
-<div>Allow access from only following IP addresses (comma separated, shell like wildcard match enabled) <input type="text" name="ipaddrs"></div>
-<div>Allow access from only following Google accounts (comma separated, shell like wildcard match enabled) <input type="text" name="accounts"></div>
+<div>IPs (comma separated, shell like wildcard) <input type="text" name="ipaddrs"></div>
+<div>Google account (email, comma separated, shell like wildcard) <input type="text" name="accounts"></div>
 <div><input type="submit" name="submit"> </div>
 </form>
 
 {% for entry in my_entries %}
 <div>
   <a href="/{{ entry.key.name }}">{{ entry.fname }}</a>
+  <a href="/c/delete/{{ entry.key.name }}">delete</a>
   {% if entry.ipaddrs %}
-  allowed ip addresses: {{ entry.ipaddrs }}
+  IPs: {{ entry.ipaddrs }}
+  {% endif %}
+  {% if entry.accounts %}
+  Accounts: {{ entry.accounts }}
   {% endif %}
 </div>
 {% endfor %}

@@ -45,6 +45,21 @@ class DownloadHandler(webapp.RequestHandler):
             if not ip_allowed:
                 self.response.set_status(404)
                 return
+        if entry.accounts:
+            cur_user = users.get_current_user()
+            if cur_user:
+                user_allowed = False
+                for allowed_account in entry.accounts.split(","):
+                    if fnmatch.fnmatchcase(cur_user.email(), allowed_account):
+                        user_allowed = True
+                        break
+                if not user_allowed:
+                    self.response.set_status(404)
+                    return
+            else:
+                self.redirect(create_login_url(self.request.path))
+                return
+
         self.response.headers["Content-Type"] = "application/vnd.android.package-archive"
         self.response.headers["Content-Disposition"] = "attachment; filename=\"%s\"" % entry.fname
         self.response.out.write(entry.data)

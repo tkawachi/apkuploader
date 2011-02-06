@@ -8,6 +8,7 @@ class ApkEntry(db.Model):
     fname = db.StringProperty()
     data = db.BlobProperty()
     ipaddrs = db.StringProperty()
+    accounts = db.StringProperty()
     uploaded_date = db.DateTimeProperty(auto_now=True)
     salt = db.StringProperty(required=True)
 

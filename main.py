@@ -34,12 +34,16 @@ class TopHandler(webapp.RequestHandler):
         self.render_template("top.html", param)
 
     def post(self):
-        apk_entry = models.ApkEntry.insert_new_entry()
         data = self.request.get("fname")
+        if not data:
+            self.redirect("/")
+            return
+        apk_entry = models.ApkEntry.insert_new_entry()
         apk_entry.data = db.Blob(data)
         apk_entry.fname = self.request.POST[u'fname'].filename
         apk_entry.owner = users.get_current_user()
         apk_entry.ipaddrs = self.request.get("ipaddrs")
+        apk_entry.accounts = self.request.get("accounts")
         apk_entry.put()
         self.redirect("/")
 
@@ -47,9 +51,23 @@ class TopHandler(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), "template", html)
         self.response.out.write(template.render(path, variables))
 
+class DeleteHandler(webapp.RequestHandler):
+    PREFIX = '/c/delete/'
+    def get(self):
+        key_name = self.request.path[len(self.PREFIX):]
+        entry = models.ApkEntry.get_by_key_name(key_name)
+        if not entry:
+            self.response.set_status(404)
+            return
+        if entry.owner != users.get_current_user():
+            self.response.set_status(404)
+            return
+        entry.delete()
+        self.redirect("/")
 
 def main():
-    application = webapp.WSGIApplication([('/', TopHandler)],
+    application = webapp.WSGIApplication([('/', TopHandler),
+                                          (DeleteHandler.PREFIX + '.*', DeleteHandler)],
                                          debug=True)
     util.run_wsgi_app(application)
 
