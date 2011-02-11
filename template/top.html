@@ -9,6 +9,14 @@
   </div>
 
 <h1 class="login">Upload new .apk</h1>
+
+<form name="form" method="post" action="{{ action_url }}" enctype="multipart/form-data">
+  <div>.apk file <input type="file" name="fname"></div>
+  <div>IP addrs <input type="text" name="ipaddrs"></div>
+  <div>Accounts <input type="text" name="accounts"></div>
+  <div><input type="submit" name="submit"> </div>
+</form>
+
 <div class="top_desc">
   IP addrs and Accounts limitations are OR-ed.  It's public available
   if IP addrs and Accounts are both empty.
@@ -20,12 +28,6 @@
   If you want to allow accesses from multiple IP addrs or Accounts,
   use comma separated format. Shell like wildcard is also available.
 </div>
-<form name="form" method="post" action="{{ action_url }}" enctype="multipart/form-data">
-<div>.apk file <input type="file" name="fname"></div>
-<div>IP addrs <input type="text" name="ipaddrs"></div>
-<div>Accounts <input type="text" name="accounts"></div>
-<div><input type="submit" name="submit"> </div>
-</form>
 
 <h1 class="login">Uploaded files</h1>
 
