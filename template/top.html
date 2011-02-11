@@ -15,8 +15,8 @@
 <div>
   <span>{{ host_url|escape }}/{{ entry.key.name }}</span>
   <a href="/{{ entry.key.name }}">{{ entry.fname }}</a>
-  <a href="/c/delete/{{ entry.key.name }}">delete</a>
   <a href="/c/update/{{ entry.key.name }}">update</a>
+  <a href="/c/delete/{{ entry.key.name }}" onclick="return confirm('Do you want to delete {{ entry.fname }} ?');">delete</a>
   {% if entry.ipaddrs %}
   IPs: {{ entry.ipaddrs|escape }}
   {% endif %}
