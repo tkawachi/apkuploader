@@ -3,7 +3,8 @@
 <title>apk uploader</title>
 </head>
 <body>
-<h1>Updating {{ host_url|escape }}/{{ entry.key.name }}</h1>
+<h1>Updating {{ entry.fname|escape }}</h1>
+{{ host_url|escape }}/{{ entry.key.name }}
 <form name="form" method="post" action="{{ post_url|escape }}" enctype="multipart/form-data">
 <div><input type="file" name="fname"></div>
 <div>IPs (comma separated, shell like wildcard) <input type="text" name="ipaddrs" value="{{ entry.ipaddrs|escape}}"></div>
