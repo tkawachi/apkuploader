@@ -26,6 +26,32 @@ import fnmatch
 import models
 
 class DownloadHandler(webapp.RequestHandler):
+
+    def is_ip_allowed(self, entry):
+        if not entry.ipaddrs:
+            return True
+
+        for allowed_ipaddr in entry.ipaddrs.split(","):
+            if fnmatch.fnmatchcase(self.request.remote_addr, allowed_ipaddr):
+                return True
+        return False
+
+    def is_user_allowed(self, entry, cur_user):
+        if not entry.accounts:
+            return True
+
+        for allowed_account in entry.accounts.split(","):
+            if fnmatch.fnmatchcase(cur_user.email(), allowed_account):
+                return True
+        return False
+
+    def respond_apk(self, entry):
+        self.response.headers["Content-Type"] = \
+            "application/vnd.android.package-archive"
+        self.response.headers["Content-Disposition"] = \
+            "attachment; filename=\"%s\"" % entry.fname
+        self.response.out.write(entry.data)
+
     def get(self):
         path = self.request.path
         if not path or len(path) < 1 or path[0] != "/":
@@ -36,33 +62,24 @@ class DownloadHandler(webapp.RequestHandler):
         if not entry:
             self.response.set_status(404)
             return
-        if entry.ipaddrs:
-            ip_allowed = False
-            for allowed_ipaddr_pat in entry.ipaddrs.split(","):
-                if fnmatch.fnmatchcase(self.request.remote_addr, allowed_ipaddr_pat):
-                    ip_allowed = True
-                    break
-            if not ip_allowed:
-                self.response.set_status(404)
-                return
+
         if entry.accounts:
             cur_user = users.get_current_user()
             if cur_user:
-                user_allowed = False
-                for allowed_account in entry.accounts.split(","):
-                    if fnmatch.fnmatchcase(cur_user.email(), allowed_account):
-                        user_allowed = True
-                        break
-                if not user_allowed:
+                if not self.is_user_allowed(entry, cur_user):
                     self.response.set_status(404)
                     return
             else:
-                self.redirect(create_login_url(self.request.path))
+                self.redirect(users.create_login_url(self.request.path))
                 return
+            self.respond_apk(entry)
+            return
 
-        self.response.headers["Content-Type"] = "application/vnd.android.package-archive"
-        self.response.headers["Content-Disposition"] = "attachment; filename=\"%s\"" % entry.fname
-        self.response.out.write(entry.data)
+        if not self.is_ip_allowed(entry):
+            self.response.set_status(404)
+            return
+
+        self.respond_apk(entry)
 
 def main():
     application = webapp.WSGIApplication([('.*', DownloadHandler)],
