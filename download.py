@@ -63,23 +63,20 @@ class DownloadHandler(webapp.RequestHandler):
             self.response.set_status(404)
             return
 
-        if entry.accounts:
-            cur_user = users.get_current_user()
-            if cur_user:
-                if not self.is_user_allowed(entry, cur_user):
-                    self.response.set_status(404)
-                    return
-            else:
-                self.redirect(users.create_login_url(self.request.path))
-                return
+        if self.is_ip_allowed(entry):
             self.respond_apk(entry)
             return
 
-        if not self.is_ip_allowed(entry):
-            self.response.set_status(404)
+        if entry.accounts:
+            cur_user = users.get_current_user()
+            if cur_user:
+                if self.is_user_allowed(entry, cur_user):
+                    self.respond_apk(entry)
+                    return
+            self.redirect(users.create_login_url(self.request.path))
             return
 
-        self.respond_apk(entry)
+        self.response.set_status(404)
 
 def main():
     application = webapp.WSGIApplication([('.*', DownloadHandler)],
