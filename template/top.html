@@ -1,31 +1,63 @@
 <html>
-<head>
-<title>apk uploader</title>
-</head>
+  <head>
+    <title>apk uploader</title>
+    <link rel="stylesheet" href="/s/style.css"　type="text/css">
+  </head>
 <body>
-<div><a href="{{ logout_url }}">Logout</a></div>
-<form name="form" method="post" action="/" enctype="multipart/form-data">
-<div><input type="file" name="fname"></div>
-<div>IPs (comma separated, shell like wildcard) <input type="text" name="ipaddrs"></div>
-<div>Google account (email, comma separated, shell like wildcard) <input type="text" name="accounts"></div>
+  <div class="top_userinfo">
+    {{ username|escape }} | <a href="{{ logout_url }}">Logout</a>
+  </div>
+
+<h1 class="login">Upload new .apk</h1>
+<div class="top_desc">
+  IP addrs and Accounts limitations are OR-ed.  It's public available
+  if IP addrs and Accounts are both empty.
+  <p />
+  If you want to allow accesses from multiple IP addrs or Accounts,
+  use comma separated format. Shell like wildcards can be used.
+</div>
+<form name="form" method="post" action="{{ action_url }}" enctype="multipart/form-data">
+<div>.apk file <input type="file" name="fname"></div>
+<div>IP addrs <input type="text" name="ipaddrs"></div>
+<div>Accounts (Email) <input type="text" name="accounts"></div>
 <div><input type="submit" name="submit"> </div>
 </form>
 
-{% for entry in my_entries %}
+<h1 class="login">Uploaded files</h1>
+
 <div>
-  <span>{{ host_url|escape }}/{{ entry.key.name }}</span>
-  <a href="/{{ entry.key.name }}">{{ entry.fname }}</a>
-  <a href="/c/update/{{ entry.key.name }}">update</a>
-  <a href="/c/delete/{{ entry.key.name }}" onclick="return confirm('Do you want to delete {{ entry.fname }} ?');">delete</a>
-  {% if entry.ipaddrs %}
-  IPs: {{ entry.ipaddrs|escape }}
-  {% endif %}
-  {% if entry.accounts %}
-  Accounts: {{ entry.accounts|escape }}
-  {% endif %}
-</div>
+  <table id="history">
+    <tbody>
+      <tr>
+	<th class="first" style="width:auto">File name</th>
+	<th style="width:15em">URL</th>
+	<th style="width:8em">IP addrs</th>
+	<th style="width:8em">Accounts</th>
+	<th style="width:7em"></th>
+      </tr>
+      
+{% for entry in my_entries %}
+      <tr>
+	<td class="fname">
+	  <div>{{ entry.fname }}</div>
+	</td>
+	<td><div>
+	    <a href="/{{ entry.key.name }}">
+	      {{ host_url|escape }}/{{ entry.key.name }}
+	    </a>
+	</div></td>
+	<td><div>{{ entry.ipaddrs|escape }}</div></td>
+	<td><div>{{ entry.accounts|escape }}</div></td>
+	<td><div>
+	  <a href="/c/update/{{ entry.key.name }}">update</a> | 
+	  <a href="/c/delete/{{ entry.key.name }}" onclick="return confirm('Do you want to delete {{ entry.fname|escape }} ?');">delete</a>
+	</div></td>
 {% endfor %}
 
-<div>You're accessing from {{ remote_addr|escape }}</div>
+  </tbody>
+  </table>
+</div>
+
+<div class="accessing">You're accessing from {{ remote_addr|escape }}</div>
 </body>
 </html>

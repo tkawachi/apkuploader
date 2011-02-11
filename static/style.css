@@ -1,0 +1,55 @@
+h1.top_title {
+    text-align: center;
+}
+
+h1.login {
+    font-size: 18pt;
+}
+
+div.top_desc {
+    margin: 20px;
+}
+
+div.top_login {
+    text-align: center;
+    font-size: 22pt;
+}
+
+div.top_userinfo {
+    text-align: right;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    -webkit-border-horizontal-spacing: 0px;
+    -webkit-border-vertical-spacing: 0px;
+}
+
+#history {
+    table-layout:fixed;
+    width: 750px;
+    margin-left: 30px;
+    margin-bottom: 30px;
+}
+
+#history div{
+    overflow: hidden;
+    word-break: break-all;
+    font-size: 0.7em;
+}
+
+#history td.fname div{
+    font-size: 0.9em;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+#history a {
+    text-decoration: none;
+}
+
+div.accessing {
+    text-align: center;
+    font-size: 0.8em;
+}
