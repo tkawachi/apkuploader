@@ -1,0 +1,15 @@
+<html>
+<head>
+<title>apk uploader</title>
+</head>
+<body>
+<h1>Updating {{ host_url|escape }}/{{ entry.key.name }}</h1>
+<form name="form" method="post" action="{{ post_url|escape }}" enctype="multipart/form-data">
+<div><input type="file" name="fname"></div>
+<div>IPs (comma separated, shell like wildcard) <input type="text" name="ipaddrs" value="{{ entry.ipaddrs|escape}}"></div>
+<div>Google account (email, comma separated, shell like wildcard) <input type="text" name="accounts" value="{{ entry.accounts|escape}}"></div>
+<div><input type="submit" name="submit"> </div>
+</form>
+<div>You're accessing from {{ remote_addr|escape }}</div>
+</body>
+</html>

@@ -3,6 +3,7 @@
 <title>apk uploader</title>
 </head>
 <body>
+<div><a href="{{ logout_url }}">Logout</a></div>
 <form name="form" method="post" action="/" enctype="multipart/form-data">
 <div><input type="file" name="fname"></div>
 <div>IPs (comma separated, shell like wildcard) <input type="text" name="ipaddrs"></div>
@@ -12,17 +13,19 @@
 
 {% for entry in my_entries %}
 <div>
+  <span>{{ host_url|escape }}/{{ entry.key.name }}</span>
   <a href="/{{ entry.key.name }}">{{ entry.fname }}</a>
   <a href="/c/delete/{{ entry.key.name }}">delete</a>
+  <a href="/c/update/{{ entry.key.name }}">update</a>
   {% if entry.ipaddrs %}
-  IPs: {{ entry.ipaddrs }}
+  IPs: {{ entry.ipaddrs|escape }}
   {% endif %}
   {% if entry.accounts %}
-  Accounts: {{ entry.accounts }}
+  Accounts: {{ entry.accounts|escape }}
   {% endif %}
 </div>
 {% endfor %}
 
-<div>You're accessing from {{ remote_addr }}</div>
+<div>You're accessing from {{ remote_addr|escape }}</div>
 </body>
 </html>
