@@ -14,18 +14,12 @@ import models
 class DownloadHandler(webapp.RequestHandler):
 
     def is_ip_allowed(self, entry):
-        if not entry.ipaddrs:
-            return True
-
         for allowed_ipaddr in entry.ipaddrs.split(","):
             if fnmatch.fnmatchcase(self.request.remote_addr, allowed_ipaddr):
                 return True
         return False
 
     def is_user_allowed(self, entry, cur_user):
-        if not entry.accounts:
-            return True
-
         for allowed_account in entry.accounts.split(","):
             if fnmatch.fnmatchcase(cur_user.email(), allowed_account):
                 return True
@@ -49,9 +43,15 @@ class DownloadHandler(webapp.RequestHandler):
             self.response.set_status(404)
             return
 
-        if self.is_ip_allowed(entry):
+        if not entry.ipaddrs and not entry.accounts:
+            # public available if both empty
             self.respond_apk(entry)
             return
+
+        if entry.ipaddrs:
+            if self.is_ip_allowed(entry):
+                self.respond_apk(entry)
+                return
 
         if entry.accounts:
             cur_user = users.get_current_user()
