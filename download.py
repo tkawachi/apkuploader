@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 from google.appengine.api import users
+from google.appengine.ext import blobstore
 from google.appengine.ext import db
 from google.appengine.ext import webapp
+from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
 
@@ -11,7 +13,8 @@ import fnmatch
 
 import models
 
-class DownloadHandler(webapp.RequestHandler):
+class DownloadHandler(blobstore_handlers.BlobstoreDownloadHandler):
+    CONTENT_TYPE = "application/vnd.android.package-archive"
 
     def is_ip_allowed(self, entry):
         for allowed_ipaddr in entry.ipaddrs.split(","):
@@ -26,15 +29,21 @@ class DownloadHandler(webapp.RequestHandler):
         return False
 
     def respond_apk(self, entry):
-        self.response.headers["Content-Type"] = \
-            "application/vnd.android.package-archive"
-        self.response.headers["Content-Disposition"] = \
-            "attachment; filename=\"%s\"" % entry.fname
+            
         if entry.data:
+            self.response.headers["Content-Type"] = self.CONTENT_TYPE
+            self.response.headers["Content-Disposition"] = \
+                "attachment; filename=\"%s\"" % entry.fname
             data = entry.data
+            self.response.out.write(data)
         else:
-            data = entry.chunked_blob.get_binary()
-        self.response.out.write(data)
+            blob = blobstore.get(entry.blob.key())
+            if blob:
+                self.send_blob(entry.blob, content_type=self.CONTENT_TYPE,
+                               save_as=True)
+            else:
+                self.response.set_status(404)
+            
 
     def get(self):
         path = self.request.path
