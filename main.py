@@ -34,8 +34,9 @@ class TopHandler(AbstractHandler):
         if not data:
             self.redirect(self.PREFIX)
             return
+        blob = models.ChunkedBlob.put_binary(data)
         apk_entry = models.ApkEntry.insert_new_entry()
-        apk_entry.data = db.Blob(data)
+        apk_entry.chunked_blob = blob
         apk_entry.fname = self.request.POST[u'fname'].filename
         apk_entry.owner = users.get_current_user()
         apk_entry.ipaddrs = self.request.get("ipaddrs")
@@ -53,6 +54,8 @@ class DeleteHandler(AbstractHandler):
             self.response.set_status(404)
             return
 
+        if entry.chunked_blob:
+            entry.chunked_blob.delete_binary()
         entry.delete()
         self.redirect("/")
 
@@ -82,13 +85,19 @@ class UpdateHandler(AbstractHandler):
             return
 
         data = self.request.get("fname")
+        old_blob = None
         if data:
             # update blob only when fname is passed
-            entry.data = db.Blob(data)
+            old_blob = entry.chunked_blob
+            blob = models.ChunkedBlob.put_binary(data)
+            entry.chunked_blob = blob
+            entry.data = None # delete if old data is in .data
             entry.fname = self.request.POST[u'fname'].filename
         entry.ipaddrs = self.request.get("ipaddrs")
         entry.accounts = self.request.get("accounts")
         entry.put()
+        if old_blob:
+            old_blob.delete_binary()
         self.redirect("/")
 
 def main():

@@ -30,7 +30,11 @@ class DownloadHandler(webapp.RequestHandler):
             "application/vnd.android.package-archive"
         self.response.headers["Content-Disposition"] = \
             "attachment; filename=\"%s\"" % entry.fname
-        self.response.out.write(entry.data)
+        if entry.data:
+            data = entry.data
+        else:
+            data = entry.chunked_blob.get_binary()
+        self.response.out.write(data)
 
     def get(self):
         path = self.request.path
