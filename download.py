@@ -5,11 +5,15 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
+from google.appengine.api import memcache
+from base64 import b64decode
 
 import os
 import fnmatch
 
 import models
+
+import random
 
 class DownloadHandler(webapp.RequestHandler):
 
@@ -25,6 +29,24 @@ class DownloadHandler(webapp.RequestHandler):
                 return True
         return False
 
+    def is_basicAuthorized(self, entry):
+        auth_header = self.request.headers.get('Authorization')
+        if auth_header:
+            auth = auth_header.split(' ')
+            if len(auth) != 2 or auth[0] != 'Basic':
+                return False
+            info = b64decode(auth[1]).split(':')
+            if len(info) != 2:
+                return False
+            # Check ID and password
+            if info[0] == entry.basic_id and info[1] == entry.basic_pw:
+                return True
+
+    def gen_key(self, len):
+        alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        num = "0123456789"
+        return "".join(random.sample(alpha + num, len))
+
     def respond_apk(self, entry):
         self.response.headers["Content-Type"] = \
             "application/vnd.android.package-archive"
@@ -38,6 +60,15 @@ class DownloadHandler(webapp.RequestHandler):
 
     def get(self):
         path = self.request.path
+
+        # Remove string after "_" if redirected from basic-authed link
+        path_parts = path.split("_")
+        path = path_parts[0]
+        if len(path_parts) >= 2:
+            key_auth = path_parts[1]
+        else:
+            key_auth = None
+
         if not path or len(path) < 1 or path[0] != "/":
             self.response.set_status(404)
             return
@@ -46,8 +77,18 @@ class DownloadHandler(webapp.RequestHandler):
         if not entry:
             self.response.set_status(404)
             return
+                      
+        # if the path was postfixed w/ "_" + key_auth random string
+        if key_auth != None:
+            user_ip = memcache.get(key_auth)
+            if user_ip == self.request.remote_addr:
+                self.respond_apk(entry)
+                return
+            else:
+                self.response.set_status(404)
+                return
 
-        if not entry.ipaddrs and not entry.accounts:
+        if not entry.ipaddrs and not entry.accounts and not entry.basic_id:
             # public available if both empty
             self.respond_apk(entry)
             return
@@ -65,6 +106,25 @@ class DownloadHandler(webapp.RequestHandler):
                     return
             self.redirect(users.create_login_url(self.request.path))
             return
+
+        if entry.basic_id:
+            if self.is_basicAuthorized(entry):
+                # A file cannot be downloaded from Android device if
+                # it is protected by Basic authentication directly.
+                # So, after authenticated, redirect to a different address
+                # that allows only the IP address cached here.
+                # self.respond_apk(entry) is what is not working here.
+                auth_key = self.gen_key(32)
+                user_ip = self.request.remote_addr
+                # Set expiration time a little long to 60 sec, because
+                # user must start downloadeing before it expires.
+                memcache.set(auth_key, user_ip, 60)
+                self.redirect(self.request.url + "_" + auth_key)
+                return
+            else:
+                self.response.set_status(401)
+                self.response.headers['WWW-Authenticate'] = 'Basic realm="BasicTest"'
+                return
 
         self.response.set_status(404)
 

@@ -61,6 +61,8 @@ class ApkEntry(db.Model):
     chunked_blob = db.ReferenceProperty(ChunkedBlob)
     ipaddrs = db.StringProperty()
     accounts = db.StringProperty()
+    basic_id = db.StringProperty()
+    basic_pw = db.StringProperty()
     uploaded_date = db.DateTimeProperty(auto_now=True)
     salt = db.StringProperty(required=True)
 
