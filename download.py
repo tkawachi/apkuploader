@@ -82,6 +82,7 @@ class DownloadHandler(webapp.RequestHandler):
         if key_auth != None:
             user_ip = memcache.get(key_auth)
             if user_ip == self.request.remote_addr:
+                memcache.delete(key_auth)
                 self.respond_apk(entry)
                 return
             else:
