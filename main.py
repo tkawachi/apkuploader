@@ -26,13 +26,20 @@ class TopHandler(AbstractHandler):
                  "my_entries": query,
                  "logout_url": users.create_logout_url("/"),
                  "username": users.get_current_user().email(),
-                 "action_url": self.PREFIX}
+                 "action_url": self.PREFIX,
+                 "errmsg": self.request.get("errmsg"),
+                 "accounts": self.request.get("accounts"),
+                 "ipaddrs": self.request.get("ipaddrs")}
         self.render_template("top.html", param)
 
     def post(self):
         data = self.request.get("fname")
         if not data:
-            self.redirect(self.PREFIX)
+            url = self.PREFIX
+            url += "?errmsg=" + "<h2 style=\"color: red\">File is not selected.</h2>"
+            url += "&accounts=" + self.request.get("accounts")
+            url += "&ipaddrs=" + self.request.get("ipaddrs")
+            self.redirect(url)
             return
         blob = models.ChunkedBlob.put_binary(data)
         apk_entry = models.ApkEntry.insert_new_entry()
@@ -40,7 +47,25 @@ class TopHandler(AbstractHandler):
         apk_entry.fname = self.request.POST[u'fname'].filename
         apk_entry.owner = users.get_current_user()
         apk_entry.ipaddrs = self.request.get("ipaddrs")
-        apk_entry.accounts = self.request.get("accounts")
+        # Input check for accounts. Valid format is xxx@yyy
+        accounts = self.request.get("accounts")
+        accounts = accounts.replace(" ", "")
+        accounts = accounts.rstrip(",")
+        if accounts != "":
+            acclist = accounts.split(",")
+            for acc in acclist:
+                if "@" not in acc:
+                    url = self.PREFIX
+                    url += "?errmsg=" + "<h2 style=\"color: red\">Account is invalid.</h2>"
+                    url += "&accounts=" + self.request.get("accounts")
+                    url += "&ipaddrs=" + self.request.get("ipaddrs")
+                    self.redirect(url)
+                    return
+        apk_entry.accounts = accounts
+
+        apk_entry.basic_id = self.request.get("basic_id")
+        apk_entry.basic_pw = self.request.get("basic_pw")
+        
         apk_entry.put()
         self.redirect(self.PREFIX)
 
