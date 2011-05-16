@@ -8,12 +8,12 @@ from google.appengine.ext.webapp import util
 from google.appengine.api import memcache
 from base64 import b64decode
 
-import os
 import fnmatch
+import hashlib
+import os
+import random
 
 import models
-
-import random
 
 class DownloadHandler(webapp.RequestHandler):
 
@@ -39,7 +39,7 @@ class DownloadHandler(webapp.RequestHandler):
             if len(info) != 2:
                 return False
             # Check ID and password
-            if info[0] == entry.basic_id and info[1] == entry.basic_pw:
+            if info[0] == entry.basic_id and hashlib.sha256(info[1]).hexdigest() == entry.basic_pw:
                 return True
 
     def gen_key(self, len):

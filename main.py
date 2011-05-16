@@ -7,6 +7,7 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
 
 import os
+import hashlib
 
 import models
 
@@ -64,7 +65,8 @@ class TopHandler(AbstractHandler):
         apk_entry.accounts = accounts
 
         apk_entry.basic_id = self.request.get("basic_id")
-        apk_entry.basic_pw = self.request.get("basic_pw")
+        if apk_entry.basic_id:
+            apk_entry.basic_pw = hashlib.sha256(self.request.get("basic_pw")).hexdigest()
         
         apk_entry.put()
         self.redirect(self.PREFIX)
